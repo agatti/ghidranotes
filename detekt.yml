@@ -1,0 +1,28 @@
+#build:
+#comments:
+complexity:
+  TooManyFunctions:
+    active: false
+  LongParameterList:
+    active: false
+#config:
+#console-reports:
+#coroutines:
+#empty-blocks:
+#exceptions:
+#formatting:
+#libraries:
+naming:
+  MatchingDeclarationName:
+    active: false
+#output-reports:
+#performance:
+#potential-bugs:
+#processors:
+#ruleauthors:
+style:
+  MagicNumber:
+    active: false
+  WildcardImport:
+    active: false
+
