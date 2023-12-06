@@ -1,0 +1,110 @@
+/*
+ * Copyright (C) 2023 Alessandro Gatti - Frob.it
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+// Builds a Ghidra Extension for a given Ghidra installation.
+//
+// An absolute path to the Ghidra installation directory must be supplied either by setting the
+// GHIDRA_INSTALL_DIR environment variable or Gradle project property:
+//
+//     > export GHIDRA_INSTALL_DIR=<Absolute path to Ghidra>
+//     > gradle
+//
+//         or
+//
+//     > gradle -PGHIDRA_INSTALL_DIR=<Absolute path to Ghidra>
+//
+// Gradle should be invoked from the directory of the project to build.  Please see the
+// application.gradle.version property in <GHIDRA_INSTALL_DIR>/Ghidra/application.properties
+// for the correction version of Gradle to use for the Ghidra installation you specify.
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath libs.kotlin.gradle
+    }
+}
+
+plugins {
+    id("idea")
+    id("java")
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ktfmt)
+}
+
+//----------------------START "DO NOT MODIFY" SECTION------------------------------
+def ghidraInstallDir
+
+if (System.env.GHIDRA_INSTALL_DIR) {
+    ghidraInstallDir = System.env.GHIDRA_INSTALL_DIR
+} else if (project.hasProperty("GHIDRA_INSTALL_DIR")) {
+    ghidraInstallDir = project.getProperty("GHIDRA_INSTALL_DIR")
+}
+
+if (ghidraInstallDir) {
+    apply from: new File(ghidraInstallDir).getCanonicalPath() + '/support/buildExtension.gradle'
+} else {
+    throw new GradleException("GHIDRA_INSTALL_DIR is not defined!")
+}
+//----------------------END "DO NOT MODIFY" SECTION-------------------------------
+
+repositories {
+    mavenCentral()
+}
+
+// Do not fail if any source code file is not already formatted at build time.
+tasks.configureEach { task ->
+    if (task.name.contains("ktfmtCheck")) {
+        task.enabled = false
+    }
+}
+
+[
+        tasks.copyDependencies,
+        tasks.detekt,
+].each { task ->
+    task.dependsOn(tasks.ktfmtFormat)
+}
+
+tasks.zipSource {
+    dependsOn(tasks.compileKotlin)
+    dependsOn(tasks.compileJava)
+}
+
+tasks.compileKotlin {
+    dependsOn(tasks.copyDependencies)
+    dependsOn(tasks.detekt)
+}
+
+detekt {
+    config.setFrom(files("${rootDir}/detekt.yml"))
+}
+
+ktfmt {
+    kotlinLangStyle()
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+dependencies {
+    implementation libs.kotlin.stdlib
+    implementation "com.fifesoft:rsyntaxtextarea:3.3.4"
+}
+
+[".idea/**", "**/.gitignore"].each { pattern ->
+    buildExtension.exclude pattern
+}
