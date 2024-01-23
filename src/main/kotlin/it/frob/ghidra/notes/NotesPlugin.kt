@@ -22,7 +22,7 @@ import ghidra.program.model.listing.Program
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea
+import org.fife.ui.rtextarea.RTextArea
 import org.fife.ui.rtextarea.RTextScrollPane
 
 @PluginInfo(
@@ -73,7 +73,7 @@ internal class NotesProvider(plugin: NotesPlugin, owner: String) :
     ComponentProviderAdapter(plugin.tool, "Notes Window", owner), ThemeListener {
 
     private var panel: JPanel = JPanel(BorderLayout())
-    private val textArea: RSyntaxTextArea = RSyntaxTextArea()
+    private val textArea: RTextArea = RTextArea()
     private val textScrollPane: RTextScrollPane = RTextScrollPane(textArea, false)
 
     var currentText: String
@@ -99,9 +99,6 @@ internal class NotesProvider(plugin: NotesPlugin, owner: String) :
         textArea.apply {
             tabSize = 2
             caretPosition = 0
-            markOccurrences = true
-            isCodeFoldingEnabled = true
-            isClearWhitespaceLinesEnabled = false
             highlightCurrentLine = false
             lineWrap = true
             wrapStyleWord = true
